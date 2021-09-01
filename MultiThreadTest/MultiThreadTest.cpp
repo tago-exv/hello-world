@@ -13,18 +13,22 @@ concurrency::concurrent_queue<std::string>(gMessageQueue);
 const std::string ExitCommand = "end";
 
 unsigned int __stdcall thred2Function(void* p) {
-	HANDLE* hEvent = (HANDLE*)p;
+	HANDLE hEvent = *(HANDLE*)p;
 
 	while (1) {
 		std::string message;
 
 		WaitForSingleObject(hEvent, INFINITE);
+		std::cout << "Catch the event\n";
 		if(gMessageQueue.try_pop(message)) {
 			std::cout << "received: " << message << std::endl;
 			if (message == ExitCommand) {
 				break;
 			}
 			Sleep(5000);
+		}
+		else {
+			ResetEvent(hEvent);
 		}
 	}
 	return 0;
