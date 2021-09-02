@@ -2,6 +2,7 @@
 #include <process.h>
 #include <iostream>
 #include <string>
+#include <thread>
 #include <ppl.h>
 #include <concurrent_queue.h>
 
@@ -12,7 +13,8 @@ concurrency::concurrent_queue<std::string>(gMessageQueue);
 
 const std::string ExitCommand = "end";
 
-unsigned int __stdcall thred2Function(void* p) {
+
+unsigned int thred2Function(void* p) {
 	HANDLE hEvent = *(HANDLE*)p;
 
 	while (1) {
@@ -45,35 +47,21 @@ int main()
 		return 1;
 	}
 
-	DWORD threadId;
-	HANDLE hHandle = (HANDLE)_beginthreadex(
-		NULL,	// Security Attribute
-		0,		// Stack size
-		thred2Function, // Start address
-		&hEvent,	// arg list
-		0,		// initial state  0
-		(unsigned int*)&threadId
-	);
-
-	if (!hHandle) {
-		std::cout << "_beginthreadex fails !\n";
-//		printf("_beginthreadex fails !\n");
-		return 1;
-	}
+	std::thread thr1(thred2Function, &hEvent);
 
 	while (1) {
 		std::string input;
 		std::getline(std::cin, input);
 
 		gMessageQueue.push(input);
-		std::cout << "SetEvent() returns " << SetEvent(hEvent) << std::endl;
+	
+	std::cout << "SetEvent() returns " << SetEvent(hEvent) << std::endl;
 		if (input == ExitCommand) {
 			break;
 		}
 	}
 
-	WaitForSingleObject(hHandle, INFINITE);
-	CloseHandle(hHandle);
+	thr1.join();
 	CloseHandle(hEvent);
 	return 0;
 }
