@@ -3,5 +3,5 @@
 main()
 {
     printf("Hello world\n");
-	printf("Rename branch test\n");
+	printf("Rename Branch Test\n");
 }
